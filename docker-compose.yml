@@ -1,0 +1,51 @@
+version: "3"
+services:
+  povio-app:
+    depends_on: 
+      - povio-app-db
+    volumes:
+      - ./:/app
+      - /app/node_modules
+    env_file: ./.env
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+      args:
+        NODE_ENV: $NODE_ENV
+    ports:
+      - $NODE_LOCAL_PORT:$NODE_DOCKER_PORT
+    environment:
+      NODE_ENV: $NODE_ENV
+      SECRET_TOKEN: $SECRET_TOKEN
+    networks:
+      - app-connect
+
+  povio-app-db:
+    image: mysql
+    restart: unless-stopped
+    networks:
+      - app-connect
+    volumes: 
+      - db-config:/etc/mysql
+      - db-data:/var/lib/mysql
+      - ./db/backup/files/:/data_backup/data
+    env_file: ./.env
+    environment:
+      NODE_ENV: $NODE_ENV
+      MYSQL_HOST: $MYSQL_HOST
+      MYSQL_ROOT_PASSWORD: $MYSQL_ROOT_PASSWORD
+      MYSQL_DATABASE: $MYSQL_DATABASE
+      MYSQL_USER: $MYSQL_USER
+      MYSQL_PASSWORD: $MYSQL_PASSWORD
+    ports:
+      - $MYSQL_LOCAL_PORT:$MYSQL_DOCKER_PORT
+
+volumes: 
+  db-config:
+  db-data:
+
+networks:
+  app-connect:
+      driver: bridge
+
+
